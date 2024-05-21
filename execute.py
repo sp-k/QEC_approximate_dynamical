@@ -1,0 +1,82 @@
+from qiskit.quantum_info import DensityMatrix, state_fidelity#, random_statevector
+from numpy import trace, matmul
+from multiprocessing import Process
+
+from QEC import four_qubit_code, five_qubit_code, damp_err
+
+NUM = 1#000
+num_qubit = 1
+num_params = 5
+iteration = 0
+tot_iter = NUM
+jobs_per_slot = 10
+num_slots = num_params // jobs_per_slot
+damp_params = [i/(2*~-num_params) for i in range(num_params)]
+fid_QEC5 = [0 for _ in range(len(damp_params))]
+fid_SDP5 = [0 for _ in range(len(damp_params))]
+fid_QEC4 = [0 for _ in range(len(damp_params))]
+fid_SDP4 = [0 for _ in range(len(damp_params))]
+fid_sing = [0 for _ in range(len(damp_params))]
+states = [{0: 0.5, 1: 0.5}]#random_statevector(2).data for _ in range(NUM)]
+
+def exec_QEC(state, i):
+    rho = []
+    s_v = [0, 0]
+    for sv, prob in state.items():
+    	s_v[sv] = prob
+    	rho.append(s_v)
+    QEC_4 = four_qubit_code()
+    try:
+        fid_QEC4[i] += state_fidelity(DensityMatrix(rho), QEC_4.run(DensityMatrix(rho), damp_params[i]))/NUM
+    except:
+        fid_QEC4[i] += 0
+    fid_SDP4[i] += QEC_4.run_SDP(damp_params[i], state)/NUM
+    
+    QEC_5 = five_qubit_code()
+    fid_QEC5[i] += state_fidelity(DensityMatrix(rho), QEC_5.run(DensityMatrix(rho), damp_params[i]))/NUM
+    fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)/NUM
+    
+    E = damp_err(damp_params[i], 1)
+    A = matmul(DensityMatrix(rho), E[0])
+    for e in E[1:]:
+        A += matmul(rho, e)
+    fid_sing[i] += abs(trace(A))**2/NUM
+
+for state in states:
+    init = 0
+    # Will execute 10 jobs at a time
+    for slot in range(num_slots):
+        # Create multiple jobs
+        jobs = []
+        for i in range(init, init+10):
+            job = Process(target = exec_QEC, args = (state, i))
+            job.start()
+            jobs.append(job)
+
+        # Wait for all jobs to finish
+        for job in jobs:
+            job.join()
+        init += jobs_per_slot
+        
+    jobs = []
+    for i in range(init, num_params):
+        job = Process(target = exec_QEC, args = (state, i))
+        job.start()
+        jobs.append(job)
+
+    # Wait for all jobs to finish
+    for job in jobs:
+        job.join()
+
+from matplotlib.pyplot import subplots, legend, savefig, show
+
+_, ax = subplots(1, 1)
+ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
+ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
+ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
+ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP")
+ax.plot(damp_params, fid_sing, label = "Single qubit")
+ax.set_xlabel(r'Damping probability $(\gamma)$')
+ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
+legend()
+show()
