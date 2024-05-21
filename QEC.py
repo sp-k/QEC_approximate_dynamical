@@ -176,7 +176,7 @@ class five_qubit_code:
         '''
         
         from cvxpy import partial_trace, trace, real, Variable
-        from numpy import eye, kron, transpose, matrix
+        from numpy import eye, kron, transpose, matrix, sqrt
         
         # Construct SDP
         prob = SDP(self.num_qubit, gamma, state)
@@ -185,7 +185,7 @@ class five_qubit_code:
         prob.X = Variable((2**(prob.n<<1), 2**(prob.n<<1)), hermitian=True)
         
         # Define constraints
-        prob.constraints = [prob.X >> 0, partial_trace(prob.X, (2**prob.n, 2**prob.n), 1) == eye(2**prob.n)]
+        prob.constraints = [prob.X >> 0, partial_trace(prob.X, (2**prob.n, 2**prob.n), 0) == eye(2**prob.n)]
         
         # Define objective function
         Cv = []
@@ -195,7 +195,7 @@ class five_qubit_code:
             anc = [1] + [0] * ~-(2**~-prob.n)
             sv = [[i] for i in kron(s_v, anc)]
             for noise in prob.noise_ops:
-                Cv.append(pr*vec(sv@matrix(s_v)@self.enc_op.transpose().data@transpose(noise)))
+                Cv.append(sqrt(pr)*vec(sv@matrix(s_v)@self.enc_op.transpose().data@transpose(noise)))
         C = Cv[0].getH().dot(Cv[0])
         for c in Cv[1:]:
             C += c.getH().dot(c)
@@ -324,7 +324,7 @@ class four_qubit_code:
         '''
         
         from cvxpy import partial_trace, trace, real, Variable
-        from numpy import eye, kron, transpose, matrix\
+        from numpy import eye, kron, transpose, matrix, sqrt
         
         # Construct SDP
         prob = SDP(self.num_qubit, gamma, state)
@@ -333,7 +333,7 @@ class four_qubit_code:
         prob.X = Variable((2**(prob.n<<1), 2**(prob.n<<1)), hermitian=True)
         
         # Define constraints
-        prob.constraints = [prob.X >> 0, partial_trace(prob.X, (2**prob.n, 2**prob.n), 1) == eye(2**prob.n)]
+        prob.constraints = [prob.X >> 0, partial_trace(prob.X, (2**prob.n, 2**prob.n), 0) == eye(2**prob.n)]
         
         # Define objective function
         Cv = []
@@ -343,7 +343,7 @@ class four_qubit_code:
             anc = [1] + [0] * ~-(2**~-prob.n)
             sv = [[i] for i in kron(s_v, anc)]
             for noise in prob.noise_ops:
-                Cv.append(pr*vec(sv@matrix(s_v)@self.enc_op.transpose().data@transpose(noise)))
+                Cv.append(sqrt(pr)*vec(sv@matrix(s_v)@self.enc_op.transpose().data@transpose(noise)))
         C = Cv[0].getH().dot(Cv[0])
         for c in Cv[1:]:
             C += c.getH().dot(c)
