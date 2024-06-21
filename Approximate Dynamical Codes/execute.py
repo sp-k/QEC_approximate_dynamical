@@ -6,32 +6,32 @@ from QEC import four_qubit_code, five_qubit_code, damp_err
 
 NUM = 1000
 num_qubit = 1
-num_params = 1
+num_params = 10
 iteration = 0
 tot_iter = NUM
 jobs_per_slot = 10
 num_slots = num_params // jobs_per_slot
-damp_params = [0.2]#i/(2*~-num_params) for i in range(num_params)]
+damp_params = [i/(2*~-num_params) for i in range(num_params)]
 states = [DensityMatrix([[0.5, 0], [0, 0.5]])]
 
 def exec_QEC(state, i):
     from os import getpid
-    print(getpid())
+    print(f'{i}: {getpid()}')
     QEC_4 = four_qubit_code()
 #     QEC_5 = five_qubit_code()
-#     itr = NUM
-#     while(itr):
-#         try:
-#             fid_QEC4[i] += state_fidelity(DensityMatrix(rho), QEC_4.run(DensityMatrix(rho), damp_params[i]))/NUM
-#             itr = ~-itr
-#         except:
-#             continue
+    itr = NUM
+    while(itr):
+        try:
+            fid_QEC4[i] += state_fidelity(DensityMatrix(state), QEC_4.run(DensityMatrix(state), damp_params[i]))/NUM
+            itr = ~-itr
+        except:
+            continue
 #         fid_QEC5[i] += state_fidelity(DensityMatrix(rho), QEC_5.run(DensityMatrix(rho), damp_params[i]))/NUM
     
-    fid, enc, chk, dec = QEC_4.run_SDP(damp_params[i], state)
+    fid, enc, dec = QEC_4.run_SDP(damp_params[i], state, 1e-5)
     fid_SDP4[i] += fid
-    print(damp_params[i], enc, chk, dec)
-#     fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)
+    print(i, damp_params[i], fid_SDP4[i], enc, dec)
+#    fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)
     
     E = damp_err(damp_params[i], 1)
     A = abs(trace(matmul(state, E[0])))**2
@@ -72,16 +72,15 @@ with Manager() as manager:
             job.join()
 
 
-#     from matplotlib.pyplot import subplots, legend, savefig, show
+    from matplotlib.pyplot import subplots, legend, savefig, show
 
-
-#     _, ax = subplots(1, 1)
-# #     ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
-# #     ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
-# #     ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
-#     ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP")
-#     ax.plot(damp_params, fid_sing, label = "Single qubit")
-#     ax.set_xlabel(r'Damping probability $(\gamma)$')
-#     ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
-#     legend()
-#     show()
+    _, ax = subplots(1, 1)
+#     ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
+#     ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
+    ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
+    ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP")
+    ax.plot(damp_params, fid_sing, label = "Single qubit")
+    ax.set_xlabel(r'Damping probability $(\gamma)$')
+    ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
+    legend()
+    show()
