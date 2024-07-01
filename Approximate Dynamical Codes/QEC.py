@@ -294,37 +294,42 @@ class four_qubit_code:
         Returns: Corrected state
         '''
         
-        from qiskit.quantum_info import Kraus, DensityMatrix, partial_trace
+        from qiskit.quantum_info import Kraus, DensityMatrix, partial_trace, state_fidelity
         
         # Expand state with ancilla qubits
         anc = [1] + [0] * ~-2**(~-self.num_qubit)
         ancilla = DensityMatrix(anc)
-        state = ancilla.expand(state)
+        state_exp = ancilla.expand(state)
         
         # Encode the state
-        state = DensityMatrix(state).evolve(self.enc_op)
+        matrix = DensityMatrix(state_exp).evolve(self.enc_op)
         
         # Apply noise
         noise_ops = Kraus(damp_err(gamma, self.num_qubit))
-        state = state.evolve(noise_ops)
+        matrix = matrix.evolve(noise_ops)
         
         # Syndrome measurement
-        synd_res, state = state.evolve(self.synd_op).measure([1, 2])
-        state = partial_trace(state, [1, 2])
+        synd_res, matrix = matrix.evolve(self.synd_op).measure([1, 2])
+        matrix = partial_trace(matrix, [1, 2])
         
         # Apply correction operation
         self._get_cor_op(gamma)
         if not int(synd_res, 2):
-            state = state.evolve(self.cor_op[int(synd_res, 2)])
-            state = partial_trace(state.measure([1])[1], [1])
+            matrix = matrix.evolve(self.cor_op[int(synd_res, 2)])
+            matrix = partial_trace(matrix.measure([1])[1], [1])
+            fid = state_fidelity(DensityMatrix(state), matrix)
         elif not ~-int(synd_res, 2):
-            state = DensityMatrix([1, 0]).expand(state).evolve(self.cor_op[int(synd_res, 2)])
-            state = partial_trace(state.measure([0])[1], [0, 1])
+            matrix = DensityMatrix([1, 0]).expand(matrix).evolve(self.cor_op[int(synd_res, 2)])
+            matrix = partial_trace(matrix.measure([0])[1], [0, 1])
+            fid = state_fidelity(DensityMatrix(state), matrix)
         elif not ~-~-int(synd_res, 2):
-            state = DensityMatrix([1, 0]).expand(state).evolve(self.cor_op[int(synd_res, 2)])
-            state = partial_trace(state.measure([0])[1], [0, 2])
+            matrix = DensityMatrix([1, 0]).expand(matrix).evolve(self.cor_op[int(synd_res, 2)])
+            matrix = partial_trace(matrix.measure([0])[1], [0, 2])
+            fid = state_fidelity(DensityMatrix(state), matrix)
+        else:
+            fid = 0
         
-        return state
+        return fid
     
     def run_SDP(self, gamma, state, _ATOL = 1e-2):
         '''Executes the QEC with SDP
@@ -340,11 +345,22 @@ class four_qubit_code:
         state = ancilla.expand(state)
         
         # Perform seesaw
-        seesaw = QECC_seesaw(1, Choi(self.enc_op), self.num_qubit)
+        seesaw = QECC_seesaw(1, Choi(self._init_enc(self.num_qubit)), self.num_qubit)
         seesaw.cal_noise_ops(gamma)
         seesaw.cal_state_ops(state)
         seesaw.run(_ATOL)
         return (seesaw.fidelity, seesaw.enc_op, seesaw.dec_op)
+    
+    @staticmethod
+    def _init_enc(num_qubits):
+        from qiskit import QuantumCircuit
+        from qiskit.quantum_info import Operator
+        
+        qc = QuantumCircuit(num_qubits)
+        qc.x(3)
+        qc.h(0)
+        qc.cx([3, 0, 0, 0], [2, 1, 2, 3])
+        return Operator(qc)
         
 #         from cvxpy import partial_trace, trace, real, Variable, kron as tens
 #         from numpy import eye, kron, transpose, matrix, sqrt

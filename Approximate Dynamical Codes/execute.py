@@ -1,5 +1,5 @@
-from qiskit.quantum_info import DensityMatrix, state_fidelity
-from numpy import trace, matmul
+from qiskit.quantum_info import DensityMatrix, random_statevector, random_density_matrix
+from numpy import trace, matmul, sqrt
 from multiprocessing import Process, Manager
 
 from QEC import four_qubit_code, five_qubit_code, damp_err
@@ -7,12 +7,13 @@ from QEC import four_qubit_code, five_qubit_code, damp_err
 NUM = 1000
 num_qubit = 1
 num_params = 10
+num_states = 100
 iteration = 0
 tot_iter = NUM
 jobs_per_slot = 10
 num_slots = num_params // jobs_per_slot
 damp_params = [i/(2*~-num_params) for i in range(num_params)]
-states = [DensityMatrix([[0.5, 0], [0, 0.5]])]
+states = [random_density_matrix(2) for _ in range(num_states)]#[DensityMatrix(random_statevector(2)) for _ in range(num_states)]#[DensityMatrix([a/10, sqrt(1-(a/10)**2)]) for a in range(11)]
 
 def exec_QEC(state, i):
     from os import getpid
@@ -22,14 +23,14 @@ def exec_QEC(state, i):
     itr = NUM
     while(itr):
         try:
-            fid_QEC4[i] += state_fidelity(DensityMatrix(state), QEC_4.run(DensityMatrix(state), damp_params[i]))/NUM
+            fid_QEC4[i] += QEC_4.run(state, damp_params[i])/(NUM * num_states)
             itr = ~-itr
         except:
             continue
 #         fid_QEC5[i] += state_fidelity(DensityMatrix(rho), QEC_5.run(DensityMatrix(rho), damp_params[i]))/NUM
     
-    fid, enc, dec = QEC_4.run_SDP(damp_params[i], state, 1e-5)
-    fid_SDP4[i] += fid
+    fid, enc, dec = QEC_4.run_SDP(damp_params[i], state, 1e-3)
+    fid_SDP4[i] += fid/num_states
     print(i, damp_params[i], fid_SDP4[i], enc, dec)
 #    fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)
     
@@ -37,7 +38,8 @@ def exec_QEC(state, i):
     A = abs(trace(matmul(state, E[0])))**2
     for e in E[1:]:
         A += abs(trace(matmul(state.data, e)))**2
-    fid_sing[i] += A
+    fid_sing[i] += A/num_states
+
 
 with Manager() as manager:
     fid_QEC4 = manager.list([0 for _ in range(len(damp_params))])
@@ -75,12 +77,13 @@ with Manager() as manager:
     from matplotlib.pyplot import subplots, legend, savefig, show
 
     _, ax = subplots(1, 1)
-#     ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
-#     ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
+#         ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
+#         ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
     ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
-    ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP")
-    ax.plot(damp_params, fid_sing, label = "Single qubit")
+    ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP", ls = '--')
+    ax.plot(damp_params, fid_sing, label = "Single qubit", ls = ':')
     ax.set_xlabel(r'Damping probability $(\gamma)$')
     ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
     legend()
-    show()
+    savefig(f'{states.index(state)}.png')
+#         show()
