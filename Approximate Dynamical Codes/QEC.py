@@ -357,7 +357,6 @@ class four_qubit_code:
         from qiskit.quantum_info import Operator
         
         qc = QuantumCircuit(num_qubits)
-        qc.x(3)
         qc.h(0)
         qc.cx([3, 0, 0, 0], [2, 1, 2, 3])
         return Operator(qc)

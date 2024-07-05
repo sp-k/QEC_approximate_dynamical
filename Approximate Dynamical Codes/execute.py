@@ -4,7 +4,7 @@ from multiprocessing import Process, Manager
 
 from QEC import four_qubit_code, five_qubit_code, damp_err
 
-NUM = 1000
+NUM = 10000
 num_qubit = 1
 num_params = 10
 num_states = 100
@@ -13,7 +13,8 @@ tot_iter = NUM
 jobs_per_slot = 10
 num_slots = num_params // jobs_per_slot
 damp_params = [i/(2*~-num_params) for i in range(num_params)]
-states = [random_density_matrix(2) for _ in range(num_states)]#[DensityMatrix(random_statevector(2)) for _ in range(num_states)]#[DensityMatrix([a/10, sqrt(1-(a/10)**2)]) for a in range(11)]
+states = [DensityMatrix([[0.5, 0], [0, 0.5]])]#[random_density_matrix(2) for _ in range(num_states)]#[DensityMatrix(random_statevector(2)) for _ in range(num_states)]#[DensityMatrix([a/10, sqrt(1-(a/10)**2)]) for a in range(11)]
+num_states = len(states)
 
 def exec_QEC(state, i):
     from os import getpid
