@@ -104,7 +104,7 @@ class QECC_seesaw:
                         for t in range(2**self.num_qubit):
                             for i in range(2**self.num_qubit):
                                 objL += array(self.enc_op)[t*2**self.num_qubit+b][s*2**self.num_qubit+a]*trace(array(chk)@kron(self.N0[a][b][i], self.get_cd(self.num_qubit, c, d)))*kron(self.N0[c][d][i], self.R1[s][t])
-            print(f'[Dec] Time taken by {a} for b = {b}, c = {c}, d = {d}: {time()-start}')
+            print(f'[Dec] Time taken by {a} for b = {b}: {time()-start}')
         lock.acquire()
         obj += objL
         lock.release()
@@ -123,7 +123,7 @@ class QECC_seesaw:
                         for t in range(2**self.num_qubit):
                             for i in range(2**self.num_qubit):
                                 objL += array(self.enc_op)[t*2**self.num_qubit+b][s*2**self.num_qubit+a]*trace(array(dec)@kron(self.N0[c][d][i], self.R1[s][t]))*kron(self.N0[a][b][i], self.get_cd(self.num_qubit, c, d))
-            print(f'[Chk] Time taken by {a} for b = {b}, c = {c}, d = {d}: {time()-start}')
+            print(f'[Chk] Time taken by {a} for b = {b}: {time()-start}')
         lock.acquire()
         obj += objL
         lock.release()
@@ -145,7 +145,7 @@ class QECC_seesaw:
                                     mat = zeros((2**(self.num_qubit<<1), 2**(self.num_qubit<<1)))
                                     mat[s*2**self.num_qubit+a][t*2**self.num_qubit+b] = 1
                                     objL += trace(self.chk_op[m]@kron(self.N0[a][b][i], self.get_cd(self.num_qubit, c, d)))*trace(self.dec_op[m]@kron(self.N0[c][d][i], self.R1[s][t]))*mat
-            print(f'[Enc] Time taken by {a} for b = {b}, c = {c}, d = {d}: {time()-start}')
+            print(f'[Enc] Time taken by {a} for b = {b}: {time()-start}')
         lock.acquire()
         obj += objL
         lock.release()
@@ -566,8 +566,8 @@ class n_qubit_code:
                 M0[0][0] = 1
                 M1 = zero.copy()
                 M1[1][1] = 1
-                chk.append(Operator(qc).compose(kron(M0, eye(4))))
-                chk.append(Operator(qc).compose(kron(M1, eye(4))))
+                chk.append(Operator(qc).compose(kron(eye(4), M0)))
+                chk.append(Operator(qc).compose(kron(eye(4), M1)))
                 return chk
             case (3, 3):
                 zero = zeros((4, 4))
