@@ -31,9 +31,6 @@ for state in states:
     print(f'{states.index(state)}: {state}')
     with Manager() as manager:
         fid_SDP4 = manager.list([0 for _ in range(len(damp_params))])
-    #     fid_QEC5 = manager.list([0 for _ in range(len(damp_params))])
-    #     fid_SDP5 = manager.list([0 for _ in range(len(damp_params))])
-        fid_sing = manager.list([0 for _ in range(len(damp_params))])
         if True:#for state in states:
             init = 0
             # Will execute 10 jobs at a time
@@ -65,4 +62,3 @@ for state in states:
         ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
         legend()
         savefig(f'Purity.png')
-    #         show()

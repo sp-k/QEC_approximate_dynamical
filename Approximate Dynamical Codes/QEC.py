@@ -220,9 +220,9 @@ class QECC_seesaw:
 
 class four_qubit_code:
     def __init__(self):
-        self.num_qubit = 4
-        self.enc_op = self._get_enc_op()    #Encoding operator
-        self.synd_op = self._get_synd_op()    #Syndrome measurement operator
+        self.num_qubit = 2
+#         self.enc_op = self._get_enc_op()    #Encoding operator
+#         self.synd_op = self._get_synd_op()    #Syndrome measurement operator
         self.cor_op = None    #Correction operator
         pass
     
@@ -356,9 +356,12 @@ class four_qubit_code:
         from qiskit import QuantumCircuit
         from qiskit.quantum_info import Operator
         
-        qc = QuantumCircuit(num_qubits)
+#         qc = QuantumCircuit(num_qubits)
+#         qc.h(0)
+#         qc.cx([3, 0, 0, 0], [2, 1, 2, 3])
+        qc = QuantumCircuit(2)
         qc.h(0)
-        qc.cx([3, 0, 0, 0], [2, 1, 2, 3])
+        qc.cx(0, 1)
         return Operator(qc)
         
 #         from cvxpy import partial_trace, trace, real, Variable, kron as tens

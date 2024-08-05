@@ -1,5 +1,6 @@
 from qiskit.quantum_info import DensityMatrix, random_statevector, random_density_matrix
 from numpy import trace, matmul, sqrt
+from pickle import dump, load
 from multiprocessing import Process, Manager
 
 from QEC import four_qubit_code, five_qubit_code, damp_err
@@ -13,7 +14,8 @@ tot_iter = NUM
 jobs_per_slot = 10
 num_slots = num_params // jobs_per_slot
 damp_params = [i/(2*~-num_params) for i in range(num_params)]
-states = [DensityMatrix([[v/10, 0], [0, 1-v/10]]) for v in range(11)]#[random_density_matrix(2) for _ in range(num_states)]#[DensityMatrix(random_statevector(2)) for _ in range(num_states)]#[DensityMatrix([a/10, sqrt(1-(a/10)**2)]) for a in range(11)]
+state = DensityMatrix([[0.5, 0], [0, 0.5]])
+# states = [DensityMatrix([[v/10, 0], [0, 1-v/10]]) for v in range(11)]#[random_density_matrix(2) for _ in range(num_states)]#[DensityMatrix(random_statevector(2)) for _ in range(num_states)]#[DensityMatrix([a/10, sqrt(1-(a/10)**2)]) for a in range(11)]
 # num_states = len(states)
 
 def exec_QEC(state, i):
@@ -22,12 +24,12 @@ def exec_QEC(state, i):
     QEC_4 = four_qubit_code()
 #     QEC_5 = five_qubit_code()
     itr = NUM
-    while(itr):
-        try:
-            fid_QEC4[i] += QEC_4.run(state, damp_params[i])/(NUM * num_states)
-            itr = ~-itr
-        except:
-            continue
+#     while(itr):
+#         try:
+#             fid_QEC4[i] += QEC_4.run(state, damp_params[i])/(NUM * num_states)
+#             itr = ~-itr
+#         except:
+#             continue
 #         fid_QEC5[i] += state_fidelity(DensityMatrix(rho), QEC_5.run(DensityMatrix(rho), damp_params[i]))/NUM
     
     fid, enc, dec = QEC_4.run_SDP(damp_params[i], state, 1e-3)
@@ -36,56 +38,95 @@ def exec_QEC(state, i):
 #    fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)
     
     E = damp_err(damp_params[i], 1)
-    A = abs(trace(matmul(state, E[0])))**2
+    A = abs(trace(matmul(state.data, E[0])))**2
     for e in E[1:]:
         A += abs(trace(matmul(state.data, e)))**2
     fid_sing[i] += A/num_states
+    
+# with open('values', 'rb') as f:
+#     data = load(f)
+    
+# data['3-qubit'] = {}
 
-for state in states:
-    print(f'{states.index(state)}: {state}')
-    with Manager() as manager:
-        fid_QEC4 = manager.list([0 for _ in range(len(damp_params))])
-        fid_SDP4 = manager.list([0 for _ in range(len(damp_params))])
-    #     fid_QEC5 = manager.list([0 for _ in range(len(damp_params))])
-    #     fid_SDP5 = manager.list([0 for _ in range(len(damp_params))])
-        fid_sing = manager.list([0 for _ in range(len(damp_params))])
-        if True:#for state in states:
-            init = 0
-            # Will execute 10 jobs at a time
-            for slot in range(num_slots):
-                # Create multiple jobs
-                jobs = []
-                for i in range(init, init+10):
-                    job = Process(target = exec_QEC, args = (state, i))
-                    job.start()
-                    jobs.append(job)
+# fid_QEC4 = [0 for _ in range(len(damp_params))]
+fid_SDP4 = [0 for _ in range(len(damp_params))]
+# fid_QEC5 = [0 for _ in range(len(damp_params))]
+# fid_SDP5 = [0 for _ in range(len(damp_params))]
+fid_sing = [0 for _ in range(len(damp_params))]
+for i in range(num_params):
+    exec_QEC(state, i)
+
+
+from matplotlib.pyplot import subplots, legend, savefig, show
+
+_, ax = subplots(1, 1)
+# ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
+# ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
+# ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
+ax.plot(damp_params, fid_SDP4, label = "2-qubit SDP", ls = '--')
+ax.plot(damp_params, fid_sing, label = "Single qubit", ls = ':')
+ax.set_xlabel(r'Damping probability $(\gamma)$')
+ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
+legend()
+savefig(f'2-qubit.png')
+show()
+
+# data['3-qubit']['1_tensor'] = {'fid_SDP4': fid_SDP4, 'fid_sing': fid_sing}
+    
+# with open('values', 'wb') as f:
+#     dump(data, f)
+
+
+# for state in states:
+#     print(f'{states.index(state)}: {state}')
+#     with Manager() as manager:
+#         fid_QEC4 = manager.list([0 for _ in range(len(damp_params))])
+#         fid_SDP4 = manager.list([0 for _ in range(len(damp_params))])
+#     #     fid_QEC5 = manager.list([0 for _ in range(len(damp_params))])
+#     #     fid_SDP5 = manager.list([0 for _ in range(len(damp_params))])
+#         fid_sing = manager.list([0 for _ in range(len(damp_params))])
+#         if True:#for state in states:
+#             init = 0
+#             # Will execute 10 jobs at a time
+#             for slot in range(num_slots):
+#                 # Create multiple jobs
+#                 jobs = []
+#                 for i in range(init, init+10):
+#                     job = Process(target = exec_QEC, args = (state, i))
+#                     job.start()
+#                     jobs.append(job)
         
-                # Wait for all jobs to finish
-                for job in jobs:
-                    job.join()
-                init += jobs_per_slot
+#                 # Wait for all jobs to finish
+#                 for job in jobs:
+#                     job.join()
+#                 init += jobs_per_slot
                 
-            jobs = []
-            for i in range(init, num_params):
-                job = Process(target = exec_QEC, args = (state, i))
-                job.start()
-                jobs.append(job)
+#             jobs = []
+#             for i in range(init, num_params):
+#                 job = Process(target = exec_QEC, args = (state, i))
+#                 job.start()
+#                 jobs.append(job)
         
-            # Wait for all jobs to finish    
-            for job in jobs:
-                job.join()
+#             # Wait for all jobs to finish    
+#             for job in jobs:
+#                 job.join()
     
     
-        from matplotlib.pyplot import subplots, legend, savefig, show
+#         from matplotlib.pyplot import subplots, legend, savefig, show
     
-        _, ax = subplots(1, 1)
-    #         ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
-    #         ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
-        ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
-        ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP", ls = '--')
-        ax.plot(damp_params, fid_sing, label = "Single qubit", ls = ':')
-        ax.set_xlabel(r'Damping probability $(\gamma)$')
-        ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
-        legend()
-        savefig(f'{states.index(state)}.png')
-    #         show()
+#         _, ax = subplots(1, 1)
+#     #         ax.plot(damp_params, fid_QEC5, label = "[[5, 1, 3]]")
+#     #         ax.plot(damp_params, fid_SDP5, label = "[[5, 1, 3]] SDP")
+#         ax.plot(damp_params, fid_QEC4, label = "[[4, 1, 2]]")
+#         ax.plot(damp_params, fid_SDP4, label = "[[4, 1, 2]] SDP", ls = '--')
+#         ax.plot(damp_params, fid_sing, label = "Single qubit", ls = ':')
+#         ax.set_xlabel(r'Damping probability $(\gamma)$')
+#         ax.set_ylabel(r'$F_e(\rho,(\mathcal{R}\circ\mathcal{E}))$')
+#         legend()
+#         savefig(f'{states.index(state)}.png')
+    
+#         data['2-qubit']['1_tensor'] = {'fid_SDP4': fid_SDP4, 'fid_sing': fid_sing}
+
+#     with open('values', 'wb') as f:
+#         dump(data, f)
+#     #         show()
