@@ -45,19 +45,20 @@ def damp_err(gamma, n):
     if not isinstance(gamma, float) or gamma < 0 or gamma > 1:
         raise ValueError(f"Damping probability should lie between 0 and 1. Given {gamma}")
         
-    from numpy import eye, zeros, kron, sqrt
+    from numpy import eye, kron, sqrt
     
-    _E = [eye(2), zeros((2, 2))]
-    _E[0][1][1] = sqrt(1-gamma)
-    _E[1][0][1] = sqrt(gamma)
+    _E = [eye(2), eye(2)]
+    _E[0][0][0] = 0.5**0.25
+    _E[0][1][1] = (0.5*(1-gamma))**0.25
+    _E[0][0][1] = sqrt(2*gamma)/(1+(1-gamma)**0.25)
+    _E[1][0][0] = 0.5**0.25
+    _E[1][1][1] = (0.5*(1-gamma))**0.25
+    _E[1][0][1] = -sqrt(2*gamma)/(1+(1-gamma)**0.25)
     
-    E = _E.copy()
-    for m in range(1, n):
-        E_ = []
-        for i in _E:
-            for j in E:
-                E_.append(kron(i, j))
-        E = E_.copy()
+    E = []
+    for j in range(n):
+        E.append(kron(eye(2**j), kron(_E[0]/sqrt(n), eye(2**(n-j-1)))))
+        E.append(kron(eye(2**j), kron(_E[1]/sqrt(n), eye(2**(n-j-1)))))
     return E
 
 def exec_QEC(state, i):
