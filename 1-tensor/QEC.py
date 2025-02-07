@@ -1,28 +1,3 @@
-def meas_gen(n, generator):
-    '''Creates operator to measure stabilizer generator
-    n [int]: Number of physical qubit in one logical qubit
-    generator [list]: Stabilizer generator
-    '''
-    
-    from qiskit import QuantumCircuit
-    from qiskit.quantum_info import Operator
-    
-    # Create coresponding quantum circuit
-    qc = QuantumCircuit(n + len(generator))
-    qc.h(range(len(generator)))
-    
-    # Apply controlled gates
-    for i in range(len(generator)):
-        gen = generator[i]
-        for j in range(len(generator[i])):
-            if generator[i][j] == 'X':
-                qc.cx(i, ~j)
-            if generator[i][j] == 'Z':
-                qc.cz(i, ~j)
-    
-    qc.h(range(len(generator)))
-    return Operator(qc)
-
 def damp_err(gamma, n, m):
 	'''This method produces noise operators for a non-Markovian amplitude damping channel with damping strength gamma.
 	Arguments:
@@ -281,14 +256,7 @@ class five_qubit_code:
     def __init__(self, num_err):
         self.num_qubit = 5
         self.num_error = min(self.num_qubit, num_err)
-        self.generator = ['XZZXI', 'IXZZX', 'XIXZZ', 'ZXIXZ']    #Stabilizer generator
-        self.L0 = [0, 18, 9, 20, 10, -27, -6, -24, -29, -3, -30, -15, -17, -12, -23, 5]    #Logical 0
-        self.L1 = [31, 13, 22, 11, 21, -4, -25, -7, -2, -28, -1, -16, -14, -19, -8, 26]    #Logical 1
         self.enc_op = self._get_enc_op()    #Encoding operator
-        self.codebook = {0: 'IIIII', 1: 'IXIII', 2: 'IIIIZ', 3: 'IIXII', 4: 'IIZII', 5: 'ZIIII', 6: 'IIIXI',
-                         7: 'IIYII', 8: 'XIIII', 9: 'IIIZI', 10: 'IZIII', 11: 'IYIII', 12: 'IIIIX', 13: 'YIIII',
-                         14: 'IIIIY', 15: 'IIIYI'}    #Syndrome measurement: Correction
-        self.synd_op = meas_gen(5, self.generator)    #Syndrome measurement operator
         self.cor_op = None    #Correction operator
         pass
     
@@ -334,42 +302,6 @@ class five_qubit_code:
         self.cor_op = Operator(Pauli(self.codebook[int(synd_res, 2)]))
         pass
     
-    def run(self, state, gamma):
-        '''Executes the QEC
-        state [list or numpy array]: Density matrix
-        gamma [float]: Damping probability
-        Returns: Corrected state
-        '''
-        
-        from qiskit.quantum_info import Kraus, DensityMatrix, partial_trace
-        from numpy import transpose
-        
-        # Encode the state
-        anc = [1] + [0] * ~-2**(~-self.num_qubit)
-        ancilla = DensityMatrix(anc)
-        state = ancilla.expand(state)
-        state = state.evolve(self.enc_op)
-        
-        # Apply noise
-        noise_ops = Kraus(damp_err(gamma, self.num_qubit, self.num_error))
-        state = state.evolve(noise_ops)
-        
-        # Syndrome measurement
-        anc = [1] + [0] * ~-2**len(self.generator)
-        ancilla = DensityMatrix(anc)
-        state = ancilla.expand(state)
-        state = state.evolve(self.synd_op)
-        synd_res, state = state.measure(range(len(self.generator)))
-        state = partial_trace(state, range(len(self.generator)))
-        
-        # Apply correction operation
-        self._get_cor_op(synd_res)
-        state = state.evolve(self.cor_op)
-        
-        # Decode the state
-        state = state.evolve(self.enc_op.transpose())    #Decoding operation is conjugate transpose of Encoding op.
-        return partial_trace(state, range(4))
-    
     def run_SDP(self, gamma, state, _ATOL = 1e-2):
         '''Executes the QEC with SDP
         state [list or numpy array]: Density matrix
@@ -400,7 +332,6 @@ class four_qubit_code:
         self.num_qubit = 4
         self.num_error = min(self.num_qubit, num_err)
         self.enc_op = self._get_enc_op()    #Encoding operator
-        self.synd_op = self._get_synd_op()    #Syndrome measurement operator
         self.cor_op = None    #Correction operator
         pass
     
@@ -418,20 +349,6 @@ class four_qubit_code:
         qc.cx(1, 2)
         qc.cx([2, 1], [3, 0])
       
-        return Operator(qc)
-    
-    def _get_synd_op(self):
-        '''Creates syndrome measurement operation'''
-        
-        from qiskit import QuantumCircuit
-        from qiskit.quantum_info import Operator
-        
-        # Create corresponding quantum circuit
-        qc = QuantumCircuit(self.num_qubit)
-        
-        # Apply CNOT gates
-        qc.cx([0, 2], [1, 3])
-        
         return Operator(qc)
     
     def _get_cor_op(self, gamma):
@@ -465,42 +382,6 @@ class four_qubit_code:
                 qc.cry(theta, 1, 0)
                 self.cor_op.append(Operator(qc))
         pass
-    
-    def run(self, state, gamma):
-        '''Executes the QEC
-        state [list or numpy array]: Density matrix
-        gamma [float]: Damping probability
-        Returns: Corrected state
-        '''
-        
-        from qiskit.quantum_info import Kraus, DensityMatrix, partial_trace
-        from numpy import transpose
-        
-        # Encode the state
-        state = DensityMatrix([1] + [0] * 3).expand(state.expand(DensityMatrix([1, 0])))
-        state = state.evolve(self.enc_op)
-        
-        # Apply noise
-        noise_ops = Kraus(damp_err(gamma, self.num_qubit, self.num_error))
-        state = state.evolve(noise_ops)
-        
-        # Syndrome measurement
-        synd_res, state = state.evolve(self.synd_op).measure([1, 3])
-        state = partial_trace(state, [1, 3])
-        
-        # Apply correction operation
-        self._get_cor_op(gamma)
-        if not int(synd_res, 2):
-            state = state.evolve(self.cor_op[int(synd_res, 2)])
-            state = partial_trace(state.measure([1])[1], [1])
-        elif not ~-int(synd_res, 2):
-            state = DensityMatrix([1, 0]).expand(state).evolve(self.cor_op[int(synd_res, 2)])
-            state = partial_trace(state.measure([0])[1], [0, 1])
-        elif not ~-~-int(synd_res, 2):
-            state = DensityMatrix([1, 0]).expand(state).evolve(self.cor_op[int(synd_res, 2)])
-            state = partial_trace(state.measure([0])[1], [0, 2])
-        
-        return state
     
     def run_SDP(self, gamma, state, _ATOL = 1e-2):
         '''Executes the QEC with SDP
