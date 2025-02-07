@@ -13,7 +13,7 @@ def damp_err_static(gamma, n, m):
 		n [int]: Number of total qubit
 		m [int]: Number of erroneous qubit
 	Returns:
-		Kraus operators corresponding to the channel
+		Noise operators corresponding to the channel
 	'''
 
 	if not isinstance(n, int) or n <= 0:
@@ -54,12 +54,24 @@ def damp_err_static(gamma, n, m):
 
 class Petz:
 	def __init__(self, code_basis, chk_basis = None):
+		'''
+		Arguments:
+			code_basis [list]: Basis of the logical space
+   			chk_basis []:
+      		Return: None
+  		'''
 		self.basis = code_basis
 		self.chk_basis = chk_basis
 		self._projector()
 		pass
 	
 	def static_petz(self, noise_ops, all = False):
+		'''
+  		Calculates the Petz recovery operations in the static scenario.
+    		Arguments:
+      			noise_ops [list]: Noise operators
+	 	Return: Recovery operations as a list
+  		'''
 		EP = zeros_like(self.projector, dtype=complex)
 		for noise in noise_ops:
 		    EP += noise@self.projector@noise.conj().T
@@ -71,6 +83,9 @@ class Petz:
 		raise NotImplementedError()
 	
 	def _projector(self):
+		'''
+  		Projector to the logical space.
+  		'''
 		P = zeros((len(self.basis[0]), len(self.basis[0])), dtype=complex)
 		for vec in self.basis:
 			P += outer(vec, conjugate(vec))
@@ -78,6 +93,14 @@ class Petz:
 		pass
 
 def ent_fid(base, recovery_ops, noise_ops):
+	'''
+ 	Calculates entanglement fidelity
+  	Arguments:
+   		base [list]: Basis of the logical space
+     		recovery_ops [list]: Recovery operations
+       		noise_ops [list]: Noise operations
+	Return: Entanglement fidelity
+ 	'''
 	dim = len(base)
 	fid = 0
 	for rec in recovery_ops:
@@ -122,58 +145,9 @@ def code_31():
 	basis[1][-1] = 1
 	return basis
 
-def our_code_2():
-	basis = [zeros(2**2), zeros(2**2)]
-	basis[0][0] = sqrt(0.5)
-	basis[0][-1] = sqrt(0.5)
-	basis[1][0] = sqrt(0.5)
-	basis[1][-1] = -sqrt(0.5)
-	chk = array([[sqrt(0.5), 0, sqrt(0.5), sqrt(0.5)], [0, 1, 0, 0], [sqrt(0.5), 0, -sqrt(0.5), -sqrt(0.5)], [0, 0, 0, 0]]).data
-	return basis, [chk@basis[0], chk@basis[1]]
-
-def our_code_3():
-	basis = [zeros(2**3), zeros(2**3)]
-	basis[0][0] = sqrt(0.5)
-	basis[0][-1] = sqrt(0.5)
-	basis[1][0] = sqrt(0.5)
-	basis[1][-1] = -sqrt(0.5)
-	chk = array([[1, 0, 0, 0, 0, 0, 0, 0],
-										   [0, 1, 0, 0, 0, 0, 0, 0],
-										   [0, 0, 1, 0, 0, 0, 0, 0],
-										   [0, 0, 0, 1, 0, 0, 0, 0],
-										   [0, 0, 0, 0, 1, 0.5, 0.5, 1], 
-										   [0, 0, 0, 0, 0, 0.5, 0, 0],
-										   [0, 0, 0, 0, 0, 0, 0.5, 0],
-										   [0, 0, 0, 0, 0, 0, 0, 0]]).data
-	return basis, [chk@basis[0], chk@basis[1]]
-
-def our_code_4():
-	basis = [zeros(2**4), zeros(2**4)]
-	basis[0][0] = 1/sqrt(2)
-	basis[0][-1] = 1/sqrt(2)
-	basis[1][0] = 1/sqrt(2)
-	basis[1][-1] = -1/sqrt(2)
-	chk = array([[1, 0, 0,    0, 0,    0,    0,    0, 0,    0,    0,    0,    0,    0,    0, 0],
-										   [0, 1, 0, 1/3, 0, 1/3,    0,    0, 0, 1/3,    0,    0,    0,    0,    0, 0],
-										   [0, 0, 1, 1/3, 0,    0, 1/3,    0, 0,    0, 1/3,    0,    0,    0,    0, 0],
-										   [0, 0, 0, 1/3, 0,    0,    0, 0.5, 0,    0,   0, 0.5,    0,    0,    0, 0],
-										   [0, 0, 0,    0, 1, 1/3, 1/3,    0, 0,    0,    0,    0, 1/3,    0,    0, 0], 
-										   [0, 0, 0,    0, 0, 1/3,    0, 0.5, 0,    0,    0,    0,    0, 0.5,    0, 0],
-										   [0, 0, 0,    0, 0,    0, 1/3, 0.5, 0,    0,    0,    0,    0,    0, 1/3, 0],
-										   [0, 0, 0,    0, 0,    0,    0, 0.5, 0,    0,    0,    0,    0,    0,    0, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 1, 1/3, 1/3,     0, 1/3,    0,    0, 1],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0, 1/3,    0, 0.5,    0, 1/3,    0, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0,    0, 1/3, 0.5,    0,    0, 1/3, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0,    0,    0, 0.5,    0,    0,    0, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0,    0,    0,    0, 1/3, 1/3, 1/3, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0,    0,    0,    0,    0, 1/3,    0, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0,    0,    0,    0,    0,    0, 1/3, 0],
-										   [0, 0, 0,    0, 0,    0,    0,    0, 0,    0,    0,    0,    0,    0,    0, 0]]).data
-	return (basis, [chk@basis[0], chk@basis[1]])
-
 fids = []
 
-for m in range(1, 6):
+for m in range(1, 6):	# number of erroneous qubits
 	base = [code_31(), code_41(), code_51()]
 	
 	for basis in base:
@@ -186,22 +160,3 @@ for m in range(1, 6):
 			recovery_ops = petz.static_petz(noise_ops)
 			fids[-1].append(ent_fid(basis, recovery_ops, noise_ops))
 		print(f'Fidelity for {m} out of {int(log2(len(basis[0])))} qubits with [{int(log2(len(basis[0])))}, 1] code: {fids[-1]}')
-
-	base = [our_code_2(), our_code_3(), our_code_4()]
-
-	for basis in base:
-		fids.append([])
-		for gamma in damp_params:
-			noise_ops = damp_err_static(gamma, int(log2(len(basis[0][0]))), m)
-			if not noise_ops:
-				continue
-			petz = Petz(basis[0], basis[1])
-			recovery_ops = petz.static_petz(noise_ops)
-			fids[-1].append(ent_fid(basis[0], recovery_ops, noise_ops))
-		print(f'Fidelity for {m} out of {int(log2(len(basis[0][0])))} qubits with our {int(log2(len(basis[0][0])))}-qubit code: {fids[-1]}')
-# fids = [[0.9999999962002966, 0.9944911897880423, 0.9887296154240831, 0.9826916559564663, 0.9763489734709674, 0.9696677997883347, 0.9626097316970446, 0.955124994879582, 0.9471543734292172, 0.9386231417169694],
-# [1.0000000000000002, 0.9963204086258307, 0.9925966212230022, 0.9886912050725045, 0.9845411541934934, 0.9800960642576845, 0.9753070792871036, 0.9701217931423038, 0.964480336019532, 0.9583111096647982]
-# [1.0000000000000007, 0.990608438602521, 0.9809363471940227, 0.9709569763917598, 0.9606390345627308, 0.9499455285329335, 0.9388321936425761, 0.9272453199901906, 0.9151186641666437, 0.9023689270621824], 
-# [0.9999999999999996, 0.9466368619897739, 0.8972135954999575, 0.8511485559356866, 0.8079529266996415, 0.7672090536041427, 0.7285533905932735, 0.6916624790355397, 0.6562406826268672, 0.622008467928146], 
-# [0.9999999982186819, 0.9721977568291672, 0.9455280010016817, 0.9198113546203376, 0.8949907562154931, 0.8710329021973129, 0.8479124455339346, 0.8256058964898134, 0.8040879324872392, 0.7833280813760533], 
-# [0.9999999957678296, 0.9876561923308275, 0.9764037161281789, 0.9657464184781704, 0.9555018692616184, 0.9455586886640286, 0.9358346653529999, 0.9262607854126398, 0.9167726427500279, 0.9073041854360504]]
