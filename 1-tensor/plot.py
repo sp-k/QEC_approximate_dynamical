@@ -12,6 +12,7 @@ rcParams.update(params)
 num_params = 10
 damp_params = [i/(2*~-num_params) for i in range(num_params)]
 
+# No Encoding fidelity
 fis = [1.0, 0.9720237690148861, 0.9436267430132539, 0.9147687979209719, 0.8854029962885428, 0.8554738483549543, 0.8249149571305296, 0.7936457577630638, 0.7615668851388537, 0.7285533905932737]
 
 # Single-qubit error
