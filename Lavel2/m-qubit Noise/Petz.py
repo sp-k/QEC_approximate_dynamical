@@ -130,7 +130,7 @@ def code_51():
 def code_41():
 	'''[4, 1] code from PhysRevA.56.2567'''
 	basis = [zeros(2**4), zeros(2**4)]
-	basis[0][1] = 1/sqrt(2)
+	basis[0][0] = 1/sqrt(2)
 	basis[0][-1] = 1/sqrt(2)
 	basis[1][3] = 1/sqrt(2)
 	basis[1][12] = 1/sqrt(2)

@@ -26,17 +26,17 @@ m1o4 = [1.0, 0.996337720834737, 0.9920609222730088, 0.9877841237112805, 0.982527
 
 # Existing codes with Petz recovery and 1-qubit error
 q51 = [0.9999999962002966, 0.9944911897880423, 0.9887296154240831, 0.9826916559564663, 0.9763489734709674, 0.9696677997883347, 0.9626097316970446, 0.955124994879582, 0.9471543734292172, 0.9386231417169694]
-q41 = [1.0000000000000002, 0.9963204086258307, 0.9925966212230022, 0.9886912050725045, 0.9845411541934934, 0.9800960642576845, 0.9753070792871036, 0.9701217931423038, 0.964480336019532, 0.9583111096647982]
+q41 = [1.0000000000000016, 0.9999504105389274, 0.9997955303750891, 0.9995252869745331, 0.9991276707718467, 0.9985883621933836, 0.9978900637521336, 0.9970114633572026, 0.9959259365637041, 0.9945994598700585]
 q31 = [1.0000000000000007, 0.990608438602521, 0.9809363471940227, 0.9709569763917598, 0.9606390345627308, 0.9499455285329335, 0.9388321936425761, 0.9272453199901906, 0.9151186641666437, 0.9023689270621824]
 
 # Existing codes with Petz recovery and 2-qubit error
 q52 = [0.9999999962002966, 0.9888898993311706, 0.9770766789586357, 0.9644928390060197, 0.9510653365592494, 0.9367149667164553, 0.9213555155496097, 0.9048925367773638, 0.8872215005469631, 0.8682248773778545]
-q42 = [1.0000000000000007, 0.9921457950060419, 0.9828277769322161, 0.9717073401653729, 0.958651313015226, 0.9435654607043754, 0.926367775194471, 0.9069784294801196, 0.88531402847109, 0.861282784966729]
+q42 = [1.0000000000000007, 0.9989588804219658, 0.9957835528537501, 0.9903893601438533, 0.9826814798882307, 0.9725530427307334, 0.9598826877207969, 0.9445313045252066, 0.9263375615131788, 0.9051115500622551]
 q32 = [1.0000000000000007, 0.9805067238572008, 0.9590878103085483, 0.9357922359763212, 0.9106876215212432, 0.8838611996032286, 0.8554200789862344, 0.825490473569692, 0.7942154401517384, 0.7617504637800296]
 
 # Existing codes with Petz recovery and all-qubit error
 q5a = [0.9999999979991117, 0.9715129929020304, 0.9394602694440767, 0.9029133666524858, 0.861182263785154, 0.814358414770249, 0.7635091108354581, 0.710383303606732, 0.6568432332002182, 0.6043910139854002]
-q4a = [1.0, 0.9459807671518145, 0.8949554287317989, 0.8467028354928505, 0.8008846403600661, 0.7570702912164573, 0.714765491174083, 0.673448691125066, 0.6326190512869885, 0.5918560478122842]
+q4a = [1.0000000000000013, 0.99456422597139, 0.9782523981837593, 0.9513773946121268, 0.9146899362980369, 0.8693587200992627, 0.8169126823813034, 0.7591531497890996, 0.6980460430245534, 0.6356049058053335]
 q3a = [0.9999999925494194, 0.9699567052529843, 0.9356285433237771, 0.8974839547498792, 0.8560988894179428, 0.8121204040107486, 0.7662277660168382, 0.7190955590805732, 0.6713623144792811, 0.6236067977499791]
 
 num_params = 10
@@ -48,11 +48,11 @@ ax.plot(damp_params, m1o2, label = f"2-qubit, 1-error")
 ax.plot(damp_params, m1o3, label = f"3-qubit, 1-error")
 ax.plot(damp_params, m1o4, label = f"4-qubit, 1-error")
 
-ax.plot(damp_params, q31, label = f"[3, 1], Petz, 1-error", ls = ':', linewidth = 2, color = '#00a')
-ax.plot(damp_params, q41, label = f"[4, 1], Petz, 1-error", ls = ':', linewidth = 2, color = '#0a0')
-ax.plot(damp_params, q51, label = f"[5, 1], Petz, 1-error", ls = ':', linewidth = 2, color = '#a00')
+ax.plot(damp_params, q31, label = f"[[3, 1]], Petz, 1-error", ls = ':', linewidth = 2, color = '#00a')
+ax.plot(damp_params, q41, label = f"[[4, 1]], Petz, 1-error", ls = ':', linewidth = 2, color = '#0a0')
+ax.plot(damp_params, q51, label = f"[[5, 1]], Petz, 1-error", ls = ':', linewidth = 2, color = '#a00')
 
-ax.set_xlabel(r'Damping probability $\gamma$')
+ax.set_xlabel(r'Damping strength $\gamma$')
 ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')
 legend()
 savefig("Fig1.pdf", format="pdf", bbox_inches="tight")
@@ -62,24 +62,33 @@ _, ax = subplots(1, 1)
 ax.plot(damp_params, fis, label = f"No Encoding", ls = ':', linewidth = 2, color = '#0a0')
 ax.plot(damp_params, m2o3, label = f"3-qubit, 2-error", color = '#00a')
 
-ax.plot(damp_params, q32, label = f"[3, 1], Petz, 2-error", ls = '--', color = '#a00')
+ax.plot(damp_params, q32, label = f"[[3, 1]], Petz, 2-error", ls = '--', color = '#a00')
 
-ax.set_xlabel(r'Damping probability $\gamma$')
+ax.set_xlabel(r'Damping strength $\gamma$')
 ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')
 legend()
 savefig("Fig2.pdf", format="pdf", bbox_inches="tight")
 show()
+
+params = {
+          'figure.figsize': (12, 6),
+          'legend.fontsize': 15,
+          'axes.labelsize': 15,
+          'xtick.labelsize': 15,
+          'ytick.labelsize': 15,
+         }
+rcParams.update(params)
 
 _, ax = subplots(1, 1)
 ax.plot(damp_params, fis, label = f"No Encoding", ls = ':', linewidth = 2, color = '#0a0')
 ax.plot(damp_params, m2o2, label = f"2-qubit, all error")
 ax.plot(damp_params, m3o3, label = f"3-qubit, all error")
 
-ax.plot(damp_params, q3a, label = f"[3, 1], Petz, all error", ls = '--')
-ax.plot(damp_params, q4a, label = f"[4, 1], Petz, all error", ls = '--')
-ax.plot(damp_params, q5a, label = f"[5, 1], Petz, all error", ls = '--')
+ax.plot(damp_params, q3a, label = f"[[3, 1]], Petz, all error", ls = '--')
+ax.plot(damp_params, q4a, label = f"[[4, 1]], Petz, all error", ls = '--')
+ax.plot(damp_params, q5a, label = f"[[5, 1]], Petz, all error", ls = '--')
 
-ax.set_xlabel(r'Damping probability $\gamma$')
+ax.set_xlabel(r'Damping strength $\gamma$')
 ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')
 legend()
 savefig("Figa.pdf", format="pdf", bbox_inches="tight")
