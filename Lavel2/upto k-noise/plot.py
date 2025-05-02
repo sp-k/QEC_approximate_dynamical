@@ -1,0 +1,92 @@
+from matplotlib.pyplot import subplots, legend, show, rcParams, savefig
+
+params = {
+          'figure.figsize': (6, 4.5),
+          'legend.fontsize': 12,
+          'axes.labelsize': 12,
+          'xtick.labelsize': 12,
+          'ytick.labelsize': 12,
+         }
+rcParams.update(params)
+
+# No encoding fidelity
+fis = [1.00000842447587, 0.9720201643139535, 0.9436094631232437, 0.9147408605085225, 0.8853719279128368, 0.8554498201094958, 0.8249087749268698, 0.7936705923349745, 0.7615676843969352, 0.7285524029467838]
+
+# 3-qubit error for our 3-qubit code
+m3o3 = [0.9999919162631112, 0.9615953407005988, 0.9239721753419852, 0.8870275112994683, 0.8505610548588827, 0.8144646651494305, 0.7785282410636245, 0.7425529186711071, 0.7063621376340568, 0.6697290561532738]
+
+# 2-qubit error for our n-qubit codes
+m2o2 = [1.0000028153326186, 0.9719894647753933, 0.9434273536781601, 0.9141236503931955, 0.8843033849318855, 0.8537253775838384, 0.8223209221164001, 0.7900837925137203, 0.756851148010444, 0.7226656154174518]
+m2o3 = [0.9999919162631112, 0.9615954127192532, 0.9239895154079849, 0.8870267197760062, 0.8504843233562466, 0.8144650967088312, 0.778528106983289, 0.7424934298953023, 0.7063601324555291, 0.6697224234945378]
+
+# 1-qubit error for our n-qubit codes
+m1o2 = [1.0000028153326186, 0.971970605106683, 0.9434324355519563, 0.9140788827395872, 0.8842098021931692, 0.8535985662925483, 0.8220696108615717, 0.7895946770673137, 0.7562105172530876, 0.7216764658921311]
+m1o3 = [0.9999919162631112, 0.9613005212010964, 0.9228146116149355, 0.8846029662608317, 0.8463280357487251, 0.80795889464482, 0.7694840161969574, 0.7306517754541544, 0.6912738290116249, 0.6512886048172787]
+m1o4 = [1.0, 0.9839897332024796, 0.9618960576142863, 0.939802382026093, 0.9102163816882005, 0.880630381350308, 0.8443667342441816, 0.8081030871380552, 0.7662368164001672, 0.724370545662279]
+
+# Existing codes with Petz recovery and 1-qubit error
+q41 = [1.0000000000000013, 0.9940795964098068, 0.9772903077940435, 0.9510061855859197, 0.9164942165300775, 0.8749233988882583, 0.8273775579263709, 0.7748708623840309, 0.7183641001917561, 0.6587797467139158]
+q31 = [0.9999999925494198, 0.9699931412894384, 0.9358710562414272, 0.8981481424567331, 0.8573388203017839, 0.8139574759945141, 0.7685185185185192, 0.7215363511659815, 0.6735253772290815, 0.6250000000000002]
+
+# Existing codes with Petz recovery and 2-qubit error
+q42 = [1.0000000000000013, 0.9947215171123615, 0.9793911613628317, 0.9548049134744809, 0.9218205560440659, 0.8813682742187289, 0.8344568311048753, 0.7821744127624786, 0.7256837338460955, 0.6662115240076327]
+q32 = [0.9999999925494198, 0.9700397003658161, 0.9362651523646197, 0.8995236659952706, 0.8606420717420767, 0.8203705661339639, 0.7793370291964115, 0.7380155302748911, 0.6967102021455542, 0.6555533988749896]
+
+# Existing codes with Petz recovery and all-qubit error
+q5a = [0.9999999979991117, 0.9715129929020306, 0.9394602694440769, 0.9029133666524858, 0.861182263785154, 0.8143584147702485, 0.7635091108354576, 0.7103833036067317, 0.6568432332002201, 0.6043910139853995]
+q4a = [1.0000000000000013, 0.99456422597139, 0.9782523981837593, 0.9513773946121268, 0.9146899362980369, 0.8693587200992627, 0.8169126823813034, 0.7591531497890996, 0.6980460430245534, 0.6356049058053334]
+q3a = [0.9999999925494198, 0.9699567052529843, 0.9356285433237773, 0.8974839547498797, 0.8560988894179428, 0.8121204040107487, 0.7662277660168384, 0.7190955590805733, 0.6713623144792812, 0.6236067977499791]
+
+num_params = 10
+damp_params = [i/(2*~-num_params) for i in range(num_params)]
+
+_, ax = subplots(1, 1)
+ax.plot(damp_params, fis, label = f"No Encoding", ls = '--')
+ax.plot(damp_params, m1o2, label = r"$2$-qubit, $k=1$")
+ax.plot(damp_params, m1o3, label = r"$3$-qubit, $k=1$")
+ax.plot(damp_params, m1o4, label = r"$4$-qubit, $k=1$")
+
+ax.plot(damp_params, q31, label = r"$[[3, 1]]$, Petz, $k=1$", ls = ':', linewidth = 2, color = '#00a')
+ax.plot(damp_params, q41, label = r"$[[4, 1]]$, Petz, $k=1$", ls = ':', linewidth = 2, color = '#0a0')
+
+ax.set_xlabel(r'Damping strength $\gamma$')
+ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')
+legend()
+savefig("FigN1.pdf", format="pdf", bbox_inches="tight")
+show()
+
+_, ax = subplots(1, 1)
+ax.plot(damp_params, fis, label = f"No Encoding", ls = ':', linewidth = 2, color = '#0a0')
+ax.plot(damp_params, m2o3, label = r"$3$-qubit, $k=2$", color = '#00a')
+
+ax.plot(damp_params, q32, label = r"$[[3, 1]]$, Petz, $k=2$", ls = '--', color = '#a00')
+
+ax.set_xlabel(r'Damping strength $\gamma$')
+ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')
+legend()
+savefig("FigN2.pdf", format="pdf", bbox_inches="tight")
+show()
+
+params = {
+          'figure.figsize': (12, 6),
+          'legend.fontsize': 15,
+          'axes.labelsize': 15,
+          'xtick.labelsize': 15,
+          'ytick.labelsize': 15,
+         }
+rcParams.update(params)
+
+_, ax = subplots(1, 1)
+ax.plot(damp_params, fis, label = f"No Encoding", ls = ':', linewidth = 2, color = '#0a0')
+ax.plot(damp_params, m2o2, label = f"2-qubit, all error")
+ax.plot(damp_params, m3o3, label = f"3-qubit, all error")
+
+ax.plot(damp_params, q3a, label = f"[[3, 1]], Petz, all error", ls = '--')
+ax.plot(damp_params, q4a, label = f"[[4, 1]], Petz, all error", ls = '--')
+ax.plot(damp_params, q5a, label = f"[[5, 1]], Petz, all error", ls = '--')
+
+ax.set_xlabel(r'Damping strength $\gamma$')
+ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')
+legend()
+savefig("FigNa.pdf", format="pdf", bbox_inches="tight")
+show()

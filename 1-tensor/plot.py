@@ -30,13 +30,13 @@ SDP4a = [1.0000027111705263, 0.9961432518104206, 0.9846151030111905, 0.965510617
 _, ax = subplots(1, 1)
 ax.plot(damp_params, fis, label = f"No Encoding")
 ax.plot(damp_params, QEC5s, label = f"[[5, 1, 3]] QEC/ See-saw, 1-error")
-ax.plot(damp_params, QEC4s, label = f"[4, 1] Approximate QEC, 1-error", ls = '--')
-ax.plot(damp_params, SDP4s, label = f"[4, 1] See-saw, 1-error", ls = '--')
+ax.plot(damp_params, QEC4s, label = f"[[4, 1]] Approximate QEC, 1-error", ls = '--')
+ax.plot(damp_params, SDP4s, label = f"[[4, 1]] See-saw, 1-error", ls = '--')
 
 ax.plot(damp_params, QEC5a, label = f"[[5, 1, 3]] QEC, all error")
 ax.plot(damp_params, SDP5a, label = f"[[5, 1, 3]] See-saw, all error")
-ax.plot(damp_params, QEC4a, label = f"[4, 1] Approximate QEC, all error", ls = '--')
-ax.plot(damp_params, SDP4a, label = f"[4, 1] See-saw, all error", ls = '--')
+ax.plot(damp_params, QEC4a, label = f"[[4, 1]] Approximate QEC, all error", ls = '--')
+ax.plot(damp_params, SDP4a, label = f"[[4, 1]] See-saw, all error", ls = '--')
 
 ax.set_xlabel(r'Damping probability $\gamma$')
 ax.set_ylabel(r'Entanglement fidelity $F_{ent}$')

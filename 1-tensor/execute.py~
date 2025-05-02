@@ -23,11 +23,11 @@ def exec_QEC(state, i):
     Returns: None
     '''
     QEC_4 = four_qubit_code(num_err)
-#     QEC_5 = five_qubit_code(num_err)
+    QEC_5 = five_qubit_code(num_err)
 
     # Perform SDPs
     fid_SDP4[i] += QEC_4.run_SDP(damp_params[i], state)
-#     fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)
+    fid_SDP5[i] += QEC_5.run_SDP(damp_params[i], state)
 
     # Calculating entanglement fidelity without encoding
     E = damp_err(damp_params[i], 1, 1)
