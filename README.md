@@ -15,7 +15,7 @@ In `Level2/m-qubit Noise`:
   6. `choi_XY` contains the Choi forms of the encoder, decoder and check instruments for X-qubit code with Y-qubit error given by `exe.py` in pickle format (as a dictionary).
   7. `Sanity_ch.py` checks the validity of the choi operations in `choi_XY` files.
 
-In `Level2/m-qubit Noise`:
+In `Level2/upto k-noise`:
 	This contains simulations with generalised amplitude damping noise model.
   1. `QEC_gen.py` contains the see-saw as in Algorithm 1.
   2. `exe.py` executes the see-saw algorithm and produces the fidelities along with the corresponding encoder, decoder and check instruments.
