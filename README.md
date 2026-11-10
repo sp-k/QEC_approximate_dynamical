@@ -13,7 +13,9 @@ In `Level2/m-qubit Noise`:
   4. `plot.py` plots the fidelities produced by `exe.py` and `Petz.py`.
   5. `fid_res.txt` contains the fidelities produced by `exe.py`.
   6. `choi_XY` contains the Choi forms of the encoder, decoder and check instruments for X-qubit code with Y-qubit error given by `exe.py` in pickle format (as a dictionary).
-  7. `Sanity_ch.py` checks the validity of the choi operations in `choi_XY` files.
+  7. `kraus_XY` contains the Kraus operators corresponding to the Choi representations in `choi_XY`.
+  8. `circuit_XY.qpy` contains the quantum circuit descriptions corresponding to the Kraus operators in `kraus_XY`.
+  8. `Sanity_ch.py` checks the validity of the choi operations in `choi_XY` files.
 
 In `Level2/upto k-noise`:
 	This contains simulations with generalised amplitude damping noise model.
